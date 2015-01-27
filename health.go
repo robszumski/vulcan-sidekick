@@ -182,7 +182,7 @@ func InitializeSite(s *settings) {
 	//create our frontend instance
 	p2 := vulcanFrontendPayload{
 		Type:        "http",
-		BackendName: s.backendName,
+		BackendName: s.siteName,
 		Route:       "Path(`/`)",
 	}
 	frontendPath := "/frontends/" + s.siteName + "/frontend"
