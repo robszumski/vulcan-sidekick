@@ -21,6 +21,7 @@ type settings struct {
 	debug         bool
 	prefix        string
 	siteName      string
+  siteHostname  string
 	backendName   string
 	interval      int
 	targetAddress string
@@ -50,6 +51,7 @@ func main() {
 	debug := fs.Bool("debug", false, "output debug info and log all attempted health checks")
 	prefix := fs.String("prefix", "vulcand", "prefix of the etcd keyspace used by vulcand")
 	siteName := fs.String("site-name", "", "label used to identify the site's backends and frontends")
+  siteHostname := fs.String("site-hostname", "", "hostname of the site this backend serves")
 	backendName := fs.String("backend-name", "", "identifier used for this instance of the backend app")
 	interval := fs.Int("interval", 30, "how often to trigger the health check in seconds")
 	targetAddress := fs.String("target-address", "", "address of the backend to be health checked")
@@ -70,6 +72,7 @@ func main() {
 		debug:         *debug,
 		prefix:        *prefix,
 		siteName:      *siteName,
+    siteHostname:  *siteHostname,
 		backendName:   *backendName,
 		interval:      *interval,
 		targetAddress: *targetAddress,
@@ -180,10 +183,12 @@ func InitializeSite(s *settings) {
 	}
 
 	//create our frontend instance
+  routingRegix := fmt.Sprintf("Host('%s')", s.siteHostname)
+  ///routingRegix := fmt.Sprintf("Host('%s') && PathRegexp('/.*')", s.siteHostname)
 	p2 := vulcanFrontendPayload{
 		Type:        "http",
 		BackendName: s.siteName,
-		Route:       "PathRegexp(`/.*`)",
+		Route:       routingRegix,
 	}
 	frontendPath := "/frontends/" + s.siteName + "/frontend"
 	err2 := ec.Put(frontendPath, p2, s)
@@ -192,7 +197,7 @@ func InitializeSite(s *settings) {
 		return
 	}
 	if s.debug {
-		log.Printf("(debug) Vulcand frontend for %s has been initialized.", s.siteName)
+		log.Printf("(debug) Vulcand frontend for %s (%s) has been initialized.", s.siteName, s.siteHostname)
 	}
 
 	log.Printf("Frontend and backend for %s have been initialized.", s.siteName)
