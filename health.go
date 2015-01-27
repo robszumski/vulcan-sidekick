@@ -183,8 +183,7 @@ func InitializeSite(s *settings) {
 	}
 
 	//create our frontend instance
-  routingRegix := fmt.Sprintf("Host('%s')", s.siteHostname)
-  ///routingRegix := fmt.Sprintf("Host('%s') && PathRegexp('/.*')", s.siteHostname)
+  routingRegix := fmt.Sprintf("Host('%s') && PathRegexp('/.*')", s.siteHostname)
 	p2 := vulcanFrontendPayload{
 		Type:        "http",
 		BackendName: s.siteName,
