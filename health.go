@@ -237,6 +237,7 @@ func (c *etcdClient) Put(path string, value interface{}, s *settings) error {
 
 	if s.debug {
 		fmt.Println(string(respBody))
+    fmt.Println("Status code from etcd is HTTP %d", resp.StatusCode)
 	}
 
 	//check for any 50x
