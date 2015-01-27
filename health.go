@@ -239,8 +239,8 @@ func (c *etcdClient) Put(path string, value interface{}, s *settings) error {
 		fmt.Println(string(respBody))
 	}
 
-	//check for any non-20x
-	if int(resp.StatusCode/100) != 2 {
+	//check for any 50x
+	if int(resp.StatusCode/100) == 5 {
 		return fmt.Errorf("etcd unexpectedly returned HTTP %d \n", resp.StatusCode)
 	}
 
