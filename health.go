@@ -183,7 +183,7 @@ func InitializeSite(s *settings) {
 	p2 := vulcanFrontendPayload{
 		Type:        "http",
 		BackendName: s.siteName,
-		Route:       "Path(`/`)",
+		Route:       "PathRegexp(`/.*`)",
 	}
 	frontendPath := "/frontends/" + s.siteName + "/frontend"
 	err2 := ec.Put(frontendPath, p2, s)
