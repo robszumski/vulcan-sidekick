@@ -204,6 +204,24 @@ type etcdClient struct {
 	Prefix  string
 }
 
+func ConstructPut(path string, json string, s *settings) (*http.Response, error) {
+  body := bytes.NewBuffer([]byte("value=" + json))
+
+  req, err := http.NewRequest("PUT", path, body)
+  if err != nil {
+    return nil, err
+  }
+
+  req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+
+  resp, err := http.DefaultClient.Do(req)
+  if err != nil {
+    return nil, err
+  }
+
+  return resp, nil
+}
+
 func (c *etcdClient) Put(path string, value interface{}, s *settings) error {
 
   //stringify json
@@ -212,40 +230,34 @@ func (c *etcdClient) Put(path string, value interface{}, s *settings) error {
     return err
   }
 
-  body := bytes.NewBuffer([]byte("value=" + string(json)))
-
   //construct the request url
 	u := fmt.Sprintf("%s/%s%s", c.Address, c.Prefix, path)
 
-	req, err := http.NewRequest("PUT", u, body)
+	resp, err := ConstructPut(u, string(json), s)
+
 	if err != nil {
-		return err
-	}
+    return err
+  }
 
-  req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+  if s.debug {
+    fmt.Printf("Status code from etcd is HTTP %d", resp.StatusCode)
+  }
 
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return err
-	}
+  if int(resp.StatusCode/100) == 3 {
+    location := resp.Header["Location"][0]
+    resp, err = ConstructPut(location, string(json), s)
 
-	defer resp.Body.Close()
-	respBody, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
+    if err != nil {
+      return err
+    }
+  }
 
-	if s.debug {
-		fmt.Println(string(respBody))
-    fmt.Println("Status code from etcd is HTTP %d", resp.StatusCode)
-	}
+  //check for any 50x
+  if int(resp.StatusCode/100) == 5 {
+    return fmt.Errorf("etcd unexpectedly returned HTTP %d \n", resp.StatusCode)
+  }
 
-	//check for any 50x
-	if int(resp.StatusCode/100) == 5 {
-		return fmt.Errorf("etcd unexpectedly returned HTTP %d \n", resp.StatusCode)
-	}
-
-	return nil
+  return nil
 }
 
 func (c *etcdClient) Delete(path string, s *settings) error {
