@@ -1,0 +1,19 @@
+[Unit]
+Description=HTTP Sidekick
+After=docker.service
+Requires=docker.service
+
+[Service]
+TimeoutStartSec=0
+ExecStartPre=-/usr/bin/docker kill vulcan-sidekick%i
+ExecStartPre=-/usr/bin/docker rm vulcan-sidekick%i
+ExecStartPre=/usr/bin/docker pull robszumski.com:5000/vulcan-sidekick
+ExecStart=/usr/bin/docker run \
+  -v /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt \
+  robszumski.com:5000/vulcan-sidekick \
+  --target-address="http://httpbin.org/status/200" \
+  --backend-name="robszumski%i" \
+  --site-name="robszumski" \
+  --interval=5 \
+  --debug=true
+ExecStop=/usr/bin/docker stop vulcan-sidekick%i
