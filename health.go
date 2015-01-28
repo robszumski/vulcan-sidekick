@@ -87,7 +87,7 @@ func main() {
 		fmt.Printf("(debug) Using settings: %v\n", s)
 	}
 
-	InitializeSite(&s)
+	//InitializeSite(&s)
 
 	for {
 		healthy = HealthCheck(&s)
